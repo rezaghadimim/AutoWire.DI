@@ -5,6 +5,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8B40A7D8-C0E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWire.DI", "src\AutoWire.DI\AutoWire.DI.csproj", "{DD8DB8ED-ECAF-415D-AD62-B8E173E82B8A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AD4F9BAD-B44D-4E6F-B86F-C399C4D3EF06}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWire.DI.Tests", "tests\AutoWire.DI.Tests\AutoWire.DI.Tests.csproj", "{7F7196D0-39C1-4918-972F-0D517B023496}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +31,21 @@ Global
 		{DD8DB8ED-ECAF-415D-AD62-B8E173E82B8A}.Release|x64.Build.0 = Release|Any CPU
 		{DD8DB8ED-ECAF-415D-AD62-B8E173E82B8A}.Release|x86.ActiveCfg = Release|Any CPU
 		{DD8DB8ED-ECAF-415D-AD62-B8E173E82B8A}.Release|x86.Build.0 = Release|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Debug|x64.Build.0 = Debug|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Debug|x86.Build.0 = Debug|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Release|x64.ActiveCfg = Release|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Release|x64.Build.0 = Release|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Release|x86.ActiveCfg = Release|Any CPU
+		{7F7196D0-39C1-4918-972F-0D517B023496}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DD8DB8ED-ECAF-415D-AD62-B8E173E82B8A} = {8B40A7D8-C0EE-4BF3-A930-BD52AAACD75F}
+		{7F7196D0-39C1-4918-972F-0D517B023496} = {AD4F9BAD-B44D-4E6F-B86F-C399C4D3EF06}
 	EndGlobalSection
 EndGlobal
