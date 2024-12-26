@@ -17,7 +17,7 @@ jobs:
         dotnet-version: '9.0.x'
     - name: Tag version
       run: |
-        VERSION=$(xmllint --xpath "//*[local-name()='Project']/*[local-name()='PropertyGroup']/*[local-name()='Version']/text()" your_project_file.csproj) 
+        VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p'  AutoWire.DI.csproj) 
         echo "Tagging version: v$VERSION"
         git tag "v$VERSION"
         git push origin "v$VERSION"
@@ -25,7 +25,7 @@ jobs:
       run: dotnet pack --configuration Release --output ./bin/Release
     - name: Publish to NuGet
       run: |
-        dotnet nuget push ./bin/Release/YourPackageId.x.x.x.nupkg \
+        dotnet nuget push ./bin/Release/ AutoWire.DI.x.x.x.nupkg \
         --api-key ${{ secrets.NUGET_API_KEY }} \
         --source https://api.nuget.org/v3/index.json
       env:
