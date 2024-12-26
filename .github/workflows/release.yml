@@ -1,27 +1,23 @@
 name: Release Package
 
 on:
-  push:
-    branches:
-      - main  # Trigger this workflow only when changes are pushed to the main branch
-  workflow_dispatch:  # Allows for manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
+    - name: Checkout code from main
       uses: actions/checkout@v2
-
+      with:
+        ref: main
     - name: Set up .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '9.0.x'  # Adjust this to your .NET version
-
+        dotnet-version: '9.0.x'
     - name: Tag version
       run: |
-        VERSION=$(xmllint --xpath "//*[local-name()='Project']/*[local-name()='PropertyGroup']/*[local-name()='Version']/text()" your_project_file.csproj)
+        VERSION=$(xmllint --xpath "//*[local-name()='Project']/*[local-name()='PropertyGroup']/*[local-name()='Version']/text()" your_project_file.csproj) 
         echo "Tagging version: v$VERSION"
         git tag "v$VERSION"
         git push origin "v$VERSION"
