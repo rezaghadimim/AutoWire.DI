@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AutoWire.DI</name>
+    </assembly>
+    <members>
+        <member name="T:AutoWire.DI.Attributes.AutoInjectAttribute">
+             <summary>
+             Indicates that a class should be automatically injected by the dependency injection container.
+             </summary>
+             <remarks>
+             This attribute can be used on classes that require dependency injection to specify that they should 
+             be resolved and managed by the dependency injection system. It supports specifying a key and 
+             the lifetime of the service to control how instances of the class are created and managed.
+            
+             Note that this attribute does not support inheritance, meaning that derived classes will 
+             not inherit this attribute from their base classes.
+             </remarks>
+             <example>
+             <code>
+             [AutoInject("myServiceKey", ServiceLifetime.Singleton)]
+             public class MyService
+             {
+                 // Implementation details
+             }
+             </code>
+             <code>
+             [AutoInject]
+             public class DefaultScopedService
+             {
+                 // Implementation details
+             }
+             </code>
+             </example>
+        </member>
+        <member name="M:AutoWire.DI.Attributes.AutoInjectAttribute.#ctor(System.String,Microsoft.Extensions.DependencyInjection.ServiceLifetime)">
+            <summary>
+            Initializes a new instance of the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> class with an optional key and service lifetime.
+            </summary>
+            <param name="key">An optional key to identify the service instance.</param>
+            <param name="lifetime">The lifetime of the service to be registered. Defaults to <see cref="F:Microsoft.Extensions.DependencyInjection.ServiceLifetime.Scoped"/>.</param>
+        </member>
+        <member name="P:AutoWire.DI.Attributes.AutoInjectAttribute.Lifetime">
+            <summary>
+            Gets the service lifetime of the attribute.
+            </summary>
+        </member>
+        <member name="P:AutoWire.DI.Attributes.AutoInjectAttribute.Key">
+            <summary>
+            Gets the optional key associated with the service.
+            </summary>
+        </member>
+        <member name="T:AutoWire.DI.Extensions.ServiceCollectionExtensions">
+            <summary>
+            Provides extension methods for the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> to facilitate automatic service registration.
+            </summary>
+        </member>
+        <member name="M:AutoWire.DI.Extensions.ServiceCollectionExtensions.RegisterAutoInjectableServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Registers services in the provided <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> that are decorated with the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
+            This method scans the calling assembly for classes marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> and registers them 
+            as services in the specified service collection.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> to which services will be added.</param>
+            <returns>The updated <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> containing the registered services.</returns>
+            <remarks>
+            This method uses <see cref="M:System.Reflection.Assembly.GetCallingAssembly"/> to determine the assembly from which the registration 
+            method was called. It is important to ensure that services marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> are 
+            defined in that calling assembly; otherwise, no services will be registered.
+            </remarks>
+        </member>
+        <member name="T:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations">
+            <summary>
+            Facilitates the registration of services within an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> based on the presence of the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
+            </summary>
+            <remarks>
+            This class scans the specified assembly for types that are annotated with the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
+            It registers these types as services with the dependency injection container, allowing for easy and automatic service registration.
+            The registration utilizes the specified lifetime and optional key defined in the attribute.
+            </remarks>
+        </member>
+        <member name="M:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations.#ctor(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Initializes a new instance of the <see cref="T:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations"/> class.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> where services will be registered.</param>
+        </member>
+        <member name="M:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations.RegisterFromAssembly(System.Reflection.Assembly)">
+            <summary>
+            Registers services from the specified assembly that are marked with the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
+            </summary>
+            <param name="assembly">The assembly from which to scan for services to register.</param>
+        </member>
+    </members>
+</doc>
