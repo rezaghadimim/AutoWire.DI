@@ -1,0 +1,36 @@
+name: Release Package
+
+on:
+  push:
+    branches:
+      - main  # Trigger this workflow only when changes are pushed to the main branch
+  workflow_dispatch:  # Allows for manual triggering of the workflow
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '9.0.x'  # Adjust this to your .NET version
+
+    - name: Tag version
+      run: |
+        VERSION=$(xmllint --xpath "//*[local-name()='Project']/*[local-name()='PropertyGroup']/*[local-name()='Version']/text()" your_project_file.csproj)
+        echo "Tagging version: v$VERSION"
+        git tag "v$VERSION"
+        git push origin "v$VERSION"
+    - name: Build the Package
+      run: dotnet pack --configuration Release --output ./bin/Release
+    - name: Publish to NuGet
+      run: |
+        dotnet nuget push ./bin/Release/YourPackageId.x.x.x.nupkg \
+        --api-key ${{ secrets.NUGET_API_KEY }} \
+        --source https://api.nuget.org/v3/index.json
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
