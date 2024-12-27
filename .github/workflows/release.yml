@@ -2,6 +2,11 @@ name: Release Package
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to set (e.g., 1.0.0)'
+        required: true
+        default: ''
 
 jobs:
   release:
@@ -11,21 +16,33 @@ jobs:
       uses: actions/checkout@v2
       with:
         ref: main
+
     - name: Set up .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '9.0.x'
+
+    - name: Set version in .csproj
+      run: |
+        VERSION=${{ github.event.inputs.version }}
+        echo "Setting project version to $VERSION"
+        sed -i "s|<Version>.*</Version>|<Version>$VERSION</Version>|" src/AutoWire.DI/AutoWire.DI.csproj
+
     - name: Tag version
       run: |
-        VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p'  AutoWire.DI.csproj) 
+        VERSION=${{ github.event.inputs.version }}
         echo "Tagging version: v$VERSION"
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
         git tag "v$VERSION"
         git push origin "v$VERSION"
+
     - name: Build the Package
-      run: dotnet pack --configuration Release --output ./bin/Release
+      run: dotnet pack src/AutoWire.DI/AutoWire.DI.csproj --configuration Release --output ./bin/Release
+
     - name: Publish to NuGet
       run: |
-        dotnet nuget push ./bin/Release/ AutoWire.DI.x.x.x.nupkg \
+        dotnet nuget push ./bin/Release/*.nupkg \
         --api-key ${{ secrets.NUGET_API_KEY }} \
         --source https://api.nuget.org/v3/index.json
       env:
