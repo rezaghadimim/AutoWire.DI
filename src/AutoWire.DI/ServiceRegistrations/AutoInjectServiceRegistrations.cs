@@ -20,10 +20,7 @@ public class AutoInjectServiceRegistrations
     /// Initializes a new instance of the <see cref="AutoInjectServiceRegistrations"/> class.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> where services will be registered.</param>
-    public AutoInjectServiceRegistrations(IServiceCollection services)
-    {
-        _services = services;
-    }
+    public AutoInjectServiceRegistrations(IServiceCollection services) => _services = services;
 
     /// <summary>
     /// Registers services from the specified assembly that are marked with the <see cref="AutoInjectAttribute"/>.
@@ -32,7 +29,11 @@ public class AutoInjectServiceRegistrations
     public void RegisterFromAssembly(Assembly assembly)
     {
         var typesWithAttribute = assembly.GetTypes()
-            .Where(t => !t.IsAbstract && (t.GetCustomAttribute<AutoInjectAttribute>() != null));
+            .Where(t => t is
+            {
+                IsAbstract: false,
+                IsClass: true
+            } && (t.GetCustomAttribute<AutoInjectAttribute>() != null));
 
         foreach (var type in typesWithAttribute) RegisterService(type);
     }
