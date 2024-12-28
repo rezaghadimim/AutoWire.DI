@@ -26,7 +26,7 @@ jobs:
       run: |
         VERSION=${{ github.event.inputs.version }}
         echo "Setting project version to $VERSION"
-        sed -i "s|<Version>.*</Version>|<Version>$VERSION</Version>|" src/AutoWire.DI/AutoWire.DI.csproj
+        sed -i "s|<PackageVersion>.*</PackageVersion>|<PackageVersion>$VERSION</PackageVersion>|" src/AutoWire.DI/AutoWire.DI.csproj
 
     - name: Tag version
       run: |
