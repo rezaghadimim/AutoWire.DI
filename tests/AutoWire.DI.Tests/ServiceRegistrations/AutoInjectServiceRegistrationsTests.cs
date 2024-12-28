@@ -47,7 +47,7 @@ public class AutoInjectServiceRegistrationsTests
             .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
 
         // Create a dummy class without the AutoInject attribute
-        var assemblyWithNoAttributes = Assembly.GetExecutingAssembly(); // Use the current assembly 
+        var assemblyWithNoAttributes = Assembly.GetExecutingAssembly(); // Use the current assembly
 
         var registrations = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
 
@@ -58,6 +58,30 @@ public class AutoInjectServiceRegistrationsTests
         // Assert
         Assert.DoesNotContain(registeredServices,
             sd => sd.ServiceType == type); // We expect no services to be registered as type NoInjectService.
+    }
+
+    [Fact]
+    public void RegisterFromAssembly_Should_Not_Register_Any_Abstract_class()
+    {
+        // Arrange
+        var serviceCollectionMock = new Mock<IServiceCollection>();
+        var registeredServices = new List<ServiceDescriptor>();
+
+        serviceCollectionMock.Setup(s => s.Add(It.IsAny<ServiceDescriptor>()))
+            .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
+
+        // Create a dummy abstract class
+        var assemblyWithAbstractClass = Assembly.GetExecutingAssembly(); // Use the current assembly
+
+        var registrations = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
+
+        // Ensure there are no services found without the AutoInject attribute
+        var type = typeof(AbstractService);
+        registrations.RegisterFromAssembly(assemblyWithAbstractClass);
+
+        // Assert
+        Assert.DoesNotContain(registeredServices,
+            sd => sd.ServiceType == type); // We expect no services to be registered as type AbstractService.
     }
 
     // Dummy interface for the sake of testing
@@ -72,4 +96,7 @@ public class AutoInjectServiceRegistrationsTests
 
     // Example of a class without AutoInject attribute for negative test
     private class NoInjectService;
+
+    [AutoInject]
+    private abstract class AbstractService;
 }

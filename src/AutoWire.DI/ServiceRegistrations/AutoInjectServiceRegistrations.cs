@@ -32,7 +32,7 @@ public class AutoInjectServiceRegistrations
     public void RegisterFromAssembly(Assembly assembly)
     {
         var typesWithAttribute = assembly.GetTypes()
-            .Where(t => t.GetCustomAttribute<AutoInjectAttribute>() != null);
+            .Where(t => !t.IsAbstract && (t.GetCustomAttribute<AutoInjectAttribute>() != null));
 
         foreach (var type in typesWithAttribute) RegisterService(type);
     }
