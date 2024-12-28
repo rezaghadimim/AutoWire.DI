@@ -84,6 +84,58 @@ public class AutoInjectServiceRegistrationsTests
             sd => sd.ServiceType == type); // We expect no services to be registered as type AbstractService.
     }
 
+    [Fact]
+    public void RegisterFromAssembly_Should_Register_Derived_Classes_With_AutoInjectAttribute()
+    {
+        // Arrange
+        var serviceCollectionMock = new Mock<IServiceCollection>();
+        var registeredServices = new List<ServiceDescriptor>();
+
+        // Mock the "Add" method to capture service registrations
+        serviceCollectionMock.Setup(s => s.Add(It.IsAny<ServiceDescriptor>()))
+            .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
+
+        var assembly = Assembly.GetExecutingAssembly(); // Scanning the current assembly
+        var registration = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
+
+        // Act
+        registration.RegisterFromAssembly(assembly);
+
+        // Assert
+        // Check if DerivedService has been registered
+        Assert.DoesNotContain(registeredServices,
+            sd => sd.ServiceType == typeof(BaseService));
+        // Only one service should be registered from the derived class
+        Assert.Single(registeredServices,
+            sd => sd.ServiceType == typeof(DerivedService) && sd.Lifetime == ServiceLifetime.Singleton);
+    }
+
+    [Fact]
+    public void RegisterFromAssembly_Should_Not_Register_Derived_Classes_With_AutoInjectAttribute_From_Abstract_Parent()
+    {
+        // Arrange
+        var serviceCollectionMock = new Mock<IServiceCollection>();
+        var registeredServices = new List<ServiceDescriptor>();
+
+        // Mock the "Add" method to capture service registrations
+        serviceCollectionMock.Setup(s => s.Add(It.IsAny<ServiceDescriptor>()))
+            .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
+
+        var assembly = Assembly.GetExecutingAssembly(); // Scanning the current assembly
+        var registration = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
+
+        // Act
+        registration.RegisterFromAssembly(assembly);
+
+        // Assert
+        // Check if DerivedService has been registered
+        Assert.DoesNotContain(registeredServices,
+            sd => sd.ServiceType == typeof(AnotherBaseService));
+        // Only one service should be registered from the derived class
+        Assert.DoesNotContain(registeredServices,
+            sd => sd.ServiceType == typeof(AnotherDerivedService));
+    }
+
     // Dummy interface for the sake of testing
     private interface ITestService;
 
@@ -99,4 +151,16 @@ public class AutoInjectServiceRegistrationsTests
 
     [AutoInject]
     private abstract class AbstractService;
+
+    private abstract class BaseService;
+
+    // Derived class with AutoInjectAttribute
+    [AutoInject(lifetime: ServiceLifetime.Singleton)]
+    private class DerivedService : BaseService;
+
+    [AutoInject(lifetime: ServiceLifetime.Singleton)]
+    private abstract class AnotherBaseService;
+
+    // Derived class with AutoInjectAttribute
+    private class AnotherDerivedService : AnotherBaseService;
 }
