@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AutoWire.DI.Analyzers</name>
+    </assembly>
+    <members>
+        <member name="T:AutoWire.DI.Analyzers.CodeAnalysis.AutoInjectAnalyzer">
+            <summary>
+            Analyzes the usage of the <c>AutoInjectAttribute</c> on class declarations.
+            </summary>
+        </member>
+        <member name="F:AutoWire.DI.Analyzers.CodeAnalysis.AutoInjectAnalyzer.Rule">
+            <summary>
+            Descriptor for the diagnostic rule that checks for the usage of the <c>AutoInjectAttribute</c>.
+            </summary>
+        </member>
+        <member name="P:AutoWire.DI.Analyzers.CodeAnalysis.AutoInjectAnalyzer.SupportedDiagnostics">
+            <inheritdoc />
+        </member>
+        <member name="M:AutoWire.DI.Analyzers.CodeAnalysis.AutoInjectAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:AutoWire.DI.Analyzers.CodeAnalysis.AutoInjectAnalyzer.AnalyzeNode(Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext)">
+            <summary>
+            Analyzes class declarations to detect the presence of the <c>AutoInjectAttribute</c>.
+            </summary>
+            <param name="context">The syntax node analysis context.</param>
+        </member>
+    </members>
+</doc>

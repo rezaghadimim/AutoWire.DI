@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>AutoWire.DI.Analyzers</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Authors>Reza Ghadimi</Authors>
+    <Description>A Roslyn analyzer library for identifying and enforcing best practices in dependency injection usage in .NET applications.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/rezaghadimim/AutoWire.DI</RepositoryUrl>
+    <PackageTags>analyzer; roslyn; autowire.di; autowire; di; .net; auto; registration;</PackageTags>
+    <DocumentationFile>..\..\docs\AutoWire.DI.Analyzers.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="../../AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="../../AnalyzerReleases.UnShipped.md" />
+  </ItemGroup>
+
+</Project>
