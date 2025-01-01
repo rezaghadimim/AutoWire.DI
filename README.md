@@ -23,7 +23,7 @@ dotnet add package AutoWire.DI
 
 ### 1. Define Your Services
 
-Decorate your service classes with the AutoInject attribute to mark them for automatic registration. You can specify a key and the desired service lifetime. If no lifetime is specified, the service will default to Scoped .
+Decorate your service classes with the AutoInject attribute to mark them for automatic registration. You can specify a key and the desired service lifetime. If no lifetime is specified, the service will default to Scoped.
 
 ```csharp
 using AutoWire.DI.Attributes;
@@ -58,7 +58,7 @@ public class Startup
     {
         // Register all services in the calling assembly that are marked with AutoInject
         services.RegisterAutoInjectableServices();
-        
+
         // Register an alternative implementation with a different key
         services.AddTransient<IMyService, MyAlternativeService>("Alternative");
     }
@@ -110,9 +110,48 @@ public class SomeController
 }
 ```
 
+## AutoWire.DI.Analyzers
+
+The **AutoWire.DI.Analyzers** project provides a set of static code analysis tools to help developers ensure correct usage of the `AutoInject` attribute in your codebase. The analyzer detects whether classes annotated with the `AutoInject` attribute are used properly and ensures that potential issues are flagged at compile time.
+
+### Features of AutoWire.DI.Analyzers
+
+- **Detects AutoInject Usage**: Flags classes marked with the `AutoInject` attribute and warns if they may not be properly detected by static analysis.
+- **Static Analysis**:  When a class is marked with `AutoInject`  but isn't used anywhere, the analyzer will report a warning. This is designed to help you ensure that all classes annotated with `AutoInject` are either actively used or explicitly suppressed, preventing unnecessary warnings in your codebase.
+
+### Installation
+
+To install the AutoWire.DI.Analyzers package, use the following command in your .NET project:
+
+```bash
+dotnet add package AutoWire.DI.Analyzers
+```
+
+### Usage
+
+Once installed, the analyzer will automatically integrate with your build process. It will detect any `AutoInject` attribute usage on class declarations and provide warnings if they are not correctly processed.
+
+You don't need to manually configure the analyzer—it works out-of-the-box as part of your regular build process.
+
+#### Example
+
+If you use the `AutoInject` attribute in your code, the analyzer will check if the class is properly detected by the static analysis system.
+
+```csharp
+[AutoInject]
+public class MyService
+{
+    // Will trigger a warning if not properly detected.
+}
+```
+
+### Customizing Analyzer Behavior
+
+The analyzer works with the default settings. If needed, you can configure or extend its behavior based on your project requirements.
+
 ## Contributing
 
-Contributions to AutoWire.DI are welcome! If you have suggestions, bug fixes, or improvements, please submit an issue or a pull request. We appreciate your help in making this project better!
+Contributions to AutoWire.DI and AutoWire.DI.Analyzers are welcome! If you have suggestions, bug fixes, or improvements, please submit an issue or a pull request. We appreciate your help in making these projects better!
 
 ## License
 
