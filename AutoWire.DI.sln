@@ -27,7 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{762C75A0-1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWire.DI.Analyzers", "src\AutoWire.DI.Analyzers\AutoWire.DI.Analyzers.csproj", "{148AA783-FC0A-4E59-A014-975519E1D8BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWire.DI.Analyzers.Tests", " AutoWire.DI.Analyzers.Tests\AutoWire.DI.Analyzers.Tests.csproj", "{16F9EB47-3BB0-4C32-9070-4863A844DBD3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWire.DI.Analyzers.Tests", "tests\AutoWire.DI.Analyzers.Tests\AutoWire.DI.Analyzers.Tests.csproj", "{16F9EB47-3BB0-4C32-9070-4863A844DBD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
