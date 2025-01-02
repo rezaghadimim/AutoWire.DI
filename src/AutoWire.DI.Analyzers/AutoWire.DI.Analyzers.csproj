@@ -7,7 +7,7 @@
     <PackageId>AutoWire.DI.Analyzers</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
     <Authors>Reza Ghadimi</Authors>
-    <Description>A Roslyn analyzer library for identifying and enforcing best practices in dependency injection usage in .NET applications.</Description>
+    <Description>A Roslyn analyzer library that identifies and enforces proper registration of classes marked with the AutoInject attribute in .NET applications to promote best practices in dependency injection.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/rezaghadimim/AutoWire.DI</RepositoryUrl>
     <PackageTags>analyzer; roslyn; autowire.di; autowire; di; .net; auto; registration;</PackageTags>
@@ -24,6 +24,10 @@
   <ItemGroup>
     <AdditionalFiles Include="../../AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="../../AnalyzerReleases.UnShipped.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoWire.DI\AutoWire.DI.csproj" />
   </ItemGroup>
 
 </Project>

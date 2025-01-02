@@ -34,7 +34,10 @@ public class AutoInjectServiceRegistrations
         var typesWithAttribute = assembly.GetTypes()
             .Where(t => !t.IsAbstract && (t.GetCustomAttribute<AutoInjectAttribute>() != null));
 
-        foreach (var type in typesWithAttribute) RegisterService(type);
+        foreach (var type in typesWithAttribute)
+        {
+            RegisterService(type);
+        }
     }
 
     private void RegisterService(Type type)

@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,8 +16,8 @@ public class AutoInjectAnalyzer : DiagnosticAnalyzer
 {
     private const string DiagnosticId = "AutoInjectUsage";
     private const string Title = "AutoInject Attribute Usage";
-    private const string MessageFormat = "The class '{0}' is annotated with AutoInject and may not be detected by static analysis";
-    private const string Description = "Classes marked with AutoInject should trigger unused warning suppression.";
+    private const string MessageFormat = "The class '{0}' is not annotated with AutoInject but may be intended for dependency injection";
+    private const string Description = "Classes intended for dependency injection should be annotated with AutoInject.";
     private const string Category = "Usage";
 
     /// <summary>
@@ -39,7 +41,6 @@ public class AutoInjectAnalyzer : DiagnosticAnalyzer
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.EnableConcurrentExecution();
-
         context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
     }
 
@@ -52,14 +53,22 @@ public class AutoInjectAnalyzer : DiagnosticAnalyzer
         var classDeclaration = (ClassDeclarationSyntax)context.Node;
         var symbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, classDeclaration);
 
-        if (symbol == null)
+        if (symbol is null)
         {
             return;
         }
 
-        if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == "AutoInjectAttribute"))
+        // Check for the presence of AutoInject attribute
+        var hasAutoInjectAttribute = symbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == "AutoInject");
+        Console.WriteLine($"Analyzing class {JsonSerializer.Serialize(symbol.GetAttributes().Select(x => x.AttributeClass?.Name ?? "withoutname").ToList())}");
+        Console.WriteLine($"Class {classDeclaration.Identifier} with AutoInject: {hasAutoInjectAttribute}");
+
+        if (hasAutoInjectAttribute)
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, classDeclaration.GetLocation(), classDeclaration.Identifier.Text));
+            Console.WriteLine("Ignore class with AutoInject attribute");
+            return;
         }
+
+        context.ReportDiagnostic(Diagnostic.Create(Rule, classDeclaration.GetLocation(), classDeclaration.Identifier.Text));
     }
 }
