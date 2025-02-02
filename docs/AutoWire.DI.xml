@@ -9,11 +9,11 @@
              Indicates that a class should be automatically injected by the dependency injection container.
              </summary>
              <remarks>
-             This attribute can be used on classes that require dependency injection to specify that they should 
-             be resolved and managed by the dependency injection system. It supports specifying a key and 
+             This attribute can be used on classes that require dependency injection to specify that they should
+             be resolved and managed by the dependency injection system. It supports specifying a key and
              the lifetime of the service to control how instances of the class are created and managed.
-            
-             Note that this attribute does not support inheritance, meaning that derived classes will 
+
+             Note that this attribute does not support inheritance, meaning that derived classes will
              not inherit this attribute from their base classes.
              </remarks>
              <example>
@@ -33,12 +33,24 @@
              </code>
              </example>
         </member>
-        <member name="M:AutoWire.DI.Attributes.AutoInjectAttribute.#ctor(System.String,Microsoft.Extensions.DependencyInjection.ServiceLifetime)">
+        <member name="M:AutoWire.DI.Attributes.AutoInjectAttribute.#ctor(System.String,Microsoft.Extensions.DependencyInjection.ServiceLifetime,System.Type)">
             <summary>
-            Initializes a new instance of the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> class with an optional key and service lifetime.
+            Initializes a new instance of the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> class with an optional key, service lifetime, and service type.
             </summary>
-            <param name="key">An optional key to identify the service instance.</param>
+            <param name="key">An optional key to identify the service instance. If not specified, the service is registered without a key.</param>
             <param name="lifetime">The lifetime of the service to be registered. Defaults to <see cref="F:Microsoft.Extensions.DependencyInjection.ServiceLifetime.Scoped"/>.</param>
+            <param name="serviceType">
+            The optional service type to be registered. If not specified, one of the implemented interfaces will be used automatically.
+            If no interfaces are implemented, the class type itself will be used.
+            <strong>Note:</strong> It is strongly recommended to explicitly specify the service type in scenarios where multiple interfaces are implemented by the class to avoid ambiguity.
+            <para>
+            If the class implements multiple interfaces and <paramref name="serviceType"/> is not provided,
+            an <see cref="T:AutoWire.DI.Exceptions.AutoInjectRegistrationException"/> will be thrown to avoid ambiguity.
+            </para>
+            </param>
+            <exception cref="T:AutoWire.DI.Exceptions.AutoInjectRegistrationException">
+            Thrown when multiple interfaces are implemented but <paramref name="serviceType"/> is not specified.
+            </exception>
         </member>
         <member name="P:AutoWire.DI.Attributes.AutoInjectAttribute.Lifetime">
             <summary>
@@ -50,6 +62,50 @@
             Gets the optional key associated with the service.
             </summary>
         </member>
+        <member name="P:AutoWire.DI.Attributes.AutoInjectAttribute.ServiceType">
+            <summary>
+            Gets the service type to be registered.
+            </summary>
+            <remarks>
+            If this property is null, the system will attempt to use one of the implemented interfaces of the class.
+            If the class does not implement any interfaces, the class type itself will be used as the service type.
+            </remarks>
+        </member>
+        <member name="T:AutoWire.DI.Exceptions.AmbiguousServiceTypeException">
+            <summary>
+            Exception thrown when a class implements multiple interfaces but no explicit service type is specified.
+            </summary>
+        </member>
+        <member name="M:AutoWire.DI.Exceptions.AmbiguousServiceTypeException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:AutoWire.DI.Exceptions.AmbiguousServiceTypeException"/> class.
+            </summary>
+            <param name="className">The name of the class that caused the exception.</param>
+        </member>
+        <member name="T:AutoWire.DI.Exceptions.AutoInjectRegistrationException">
+            <summary>
+            Represents an exception that is thrown when an error occurs during the automatic registration of services.
+            </summary>
+        </member>
+        <member name="M:AutoWire.DI.Exceptions.AutoInjectRegistrationException.#ctor(System.String)">
+            <summary>
+            Represents an exception that is thrown when an error occurs during the automatic registration of services.
+            </summary>
+        </member>
+        <member name="T:AutoWire.DI.Exceptions.DuplicateServiceRegistrationException">
+            <summary>
+            Exception thrown when attempting to register a duplicate service with the same type and key.
+            </summary>
+        </member>
+        <member name="M:AutoWire.DI.Exceptions.DuplicateServiceRegistrationException.#ctor(System.Type,System.Type,System.Type,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:AutoWire.DI.Exceptions.DuplicateServiceRegistrationException"/> class.
+            </summary>
+            <param name="newType">The new class that is trying to be registered.</param>
+            <param name="existingType">The already registered class that conflicts.</param>
+            <param name="serviceType">The service type that caused the conflict.</param>
+            <param name="key">The optional key associated with the service.</param>
+        </member>
         <member name="T:AutoWire.DI.Extensions.ServiceCollectionExtensions">
             <summary>
             Provides extension methods for the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> to facilitate automatic service registration.
@@ -58,14 +114,14 @@
         <member name="M:AutoWire.DI.Extensions.ServiceCollectionExtensions.RegisterAutoInjectableServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
             Registers services in the provided <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> that are decorated with the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
-            This method scans the calling assembly for classes marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> and registers them 
+            This method scans the calling assembly for classes marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> and registers them
             as services in the specified service collection.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> to which services will be added.</param>
             <returns>The updated <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> containing the registered services.</returns>
             <remarks>
-            This method uses <see cref="M:System.Reflection.Assembly.GetCallingAssembly"/> to determine the assembly from which the registration 
-            method was called. It is important to ensure that services marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> are 
+            This method uses <see cref="M:System.Reflection.Assembly.GetCallingAssembly"/> to determine the assembly from which the registration
+            method was called. It is important to ensure that services marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> are
             defined in that calling assembly; otherwise, no services will be registered.
             </remarks>
         </member>
