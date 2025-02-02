@@ -12,7 +12,7 @@
              This attribute can be used on classes that require dependency injection to specify that they should
              be resolved and managed by the dependency injection system. It supports specifying a key and
              the lifetime of the service to control how instances of the class are created and managed.
-
+            
              Note that this attribute does not support inheritance, meaning that derived classes will
              not inherit this attribute from their base classes.
              </remarks>
@@ -114,14 +114,14 @@
         <member name="M:AutoWire.DI.Extensions.ServiceCollectionExtensions.RegisterAutoInjectableServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
             Registers services in the provided <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> that are decorated with the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
-            This method scans the calling assembly for classes marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> and registers them
+            This method scans the calling assembly for classes marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> and registers them 
             as services in the specified service collection.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> to which services will be added.</param>
             <returns>The updated <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> containing the registered services.</returns>
             <remarks>
-            This method uses <see cref="M:System.Reflection.Assembly.GetCallingAssembly"/> to determine the assembly from which the registration
-            method was called. It is important to ensure that services marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> are
+            This method uses <see cref="M:System.Reflection.Assembly.GetCallingAssembly"/> to determine the assembly from which the registration 
+            method was called. It is important to ensure that services marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> are 
             defined in that calling assembly; otherwise, no services will be registered.
             </remarks>
         </member>

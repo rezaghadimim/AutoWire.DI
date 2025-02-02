@@ -1,166 +1,143 @@
-using System.Reflection;
 using AutoWire.DI.Attributes;
+using AutoWire.DI.Exceptions;
 using AutoWire.DI.ServiceRegistrations;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 
 namespace AutoWire.DI.Tests.ServiceRegistrations;
 
 public class AutoInjectServiceRegistrationsTests
 {
     [Fact]
-    public void RegisterFromAssembly_Should_Register_Types_With_AutoInjectAttribute()
+    public void RegisterFromAssembly_ShouldRegisterServicesWithAutoInjectAttribute()
     {
         // Arrange
-        var serviceCollectionMock = new Mock<IServiceCollection>();
-        var registeredServices = new List<ServiceDescriptor>();
+        var services = new ServiceCollection();
+        var registrations = new AutoInjectServiceRegistrations(services);
 
-        serviceCollectionMock.Setup(s => s.Add(It.IsAny<ServiceDescriptor>()))
-            .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
-
-        var assembly = Assembly.GetExecutingAssembly(); // Use the current assembly which contains test services
-        var registrations = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
+        var serviceType = typeof(MyService);
 
         // Act
-        registrations.RegisterFromAssembly(assembly);
+        registrations.RegisterService(serviceType); // Directly register just the target class
 
         // Assert
-        Assert.True(registeredServices.Count > 2); // We expect at least two services to be registered (TestService and ScopedService).
-
-        // Check if TestService is registered as Singleton
-        Assert.Contains(registeredServices,
-            sd => sd.ServiceType == typeof(ITestService) && sd.Lifetime == ServiceLifetime.Singleton);
-
-        // Check if ScopedService is registered as Scoped
-        Assert.Contains(registeredServices,
-            sd => sd.ServiceType == typeof(ITestService) && sd.Lifetime == ServiceLifetime.Scoped);
+        var serviceDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IMyService));
+        Assert.NotNull(serviceDescriptor);
+        Assert.Equal(serviceType, serviceDescriptor.ImplementationType);
     }
 
     [Fact]
-    public void RegisterFromAssembly_Should_Not_Register_Any_Types_Without_AutoInjectAttribute()
+    public void RegisterFromAssembly_ShouldThrowException_WhenDuplicateServiceRegistrationOccurs()
     {
         // Arrange
-        var serviceCollectionMock = new Mock<IServiceCollection>();
-        var registeredServices = new List<ServiceDescriptor>();
+        var services = new ServiceCollection();
+        var registrations = new AutoInjectServiceRegistrations(services);
 
-        serviceCollectionMock.Setup(s => s.Add(It.IsAny<ServiceDescriptor>()))
-            .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
+        // Two classes both using AutoInjectAttribute with the same key
+        var serviceType1 = typeof(MyService);
+        var serviceType2 = typeof(AnotherService);
 
-        // Create a dummy class without the AutoInject attribute
-        var assemblyWithNoAttributes = Assembly.GetExecutingAssembly(); // Use the current assembly
+        registrations.RegisterService(serviceType1);
 
-        var registrations = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
-
-        // Ensure there are no services found without the AutoInject attribute
-        var type = typeof(NoInjectService);
-        registrations.RegisterFromAssembly(assemblyWithNoAttributes);
-
-        // Assert
-        Assert.DoesNotContain(registeredServices,
-            sd => sd.ServiceType == type); // We expect no services to be registered as type NoInjectService.
+        // Act & Assert
+        Assert.Throws<DuplicateServiceRegistrationException>(() =>
+            registrations.RegisterService(serviceType2));
     }
 
     [Fact]
-    public void RegisterFromAssembly_Should_Not_Register_Any_Abstract_class()
+    public void RegisterService_ShouldDetermineServiceTypeCorrectly_WhenMultipleInterfacesImplemented()
     {
         // Arrange
-        var serviceCollectionMock = new Mock<IServiceCollection>();
-        var registeredServices = new List<ServiceDescriptor>();
+        var services = new ServiceCollection();
+        var registrations = new AutoInjectServiceRegistrations(services);
 
-        serviceCollectionMock.Setup(s => s.Add(It.IsAny<ServiceDescriptor>()))
-            .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
-
-        // Create a dummy abstract class
-        var assemblyWithAbstractClass = Assembly.GetExecutingAssembly(); // Use the current assembly
-
-        var registrations = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
-
-        // Ensure there are no services found without the AutoInject attribute
-        var type = typeof(AbstractService);
-        registrations.RegisterFromAssembly(assemblyWithAbstractClass);
-
-        // Assert
-        Assert.DoesNotContain(registeredServices,
-            sd => sd.ServiceType == type); // We expect no services to be registered as type AbstractService.
-    }
-
-    [Fact]
-    public void RegisterFromAssembly_Should_Register_Derived_Classes_With_AutoInjectAttribute()
-    {
-        // Arrange
-        var serviceCollectionMock = new Mock<IServiceCollection>();
-        var registeredServices = new List<ServiceDescriptor>();
-
-        // Mock the "Add" method to capture service registrations
-        serviceCollectionMock.Setup(s => s.Add(It.IsAny<ServiceDescriptor>()))
-            .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
-
-        var assembly = Assembly.GetExecutingAssembly(); // Scanning the current assembly
-        var registration = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
+        // Assume this class implements multiple interfaces
+        var serviceType = typeof(MultiInterfaceService);
 
         // Act
-        registration.RegisterFromAssembly(assembly);
+        registrations.RegisterService(serviceType);
 
         // Assert
-        // Check if DerivedService has been registered
-        Assert.DoesNotContain(registeredServices,
-            sd => sd.ServiceType == typeof(BaseService));
-        // Only one service should be registered from the derived class
-        Assert.Single(registeredServices,
-            sd => sd.ServiceType == typeof(DerivedService) && sd.Lifetime == ServiceLifetime.Singleton);
+        var serviceDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IMyService));
+        Assert.NotNull(serviceDescriptor);
+        Assert.Equal(serviceType, serviceDescriptor.ImplementationType);
     }
 
     [Fact]
-    public void RegisterFromAssembly_Should_Not_Register_Derived_Classes_With_AutoInjectAttribute_From_Abstract_Parent()
+    public void RegisterService_ShouldUseClassItself_WhenNoDirectInterfaceAndServiceTypeIsNull()
     {
         // Arrange
-        var serviceCollectionMock = new Mock<IServiceCollection>();
-        var registeredServices = new List<ServiceDescriptor>();
+        var services = new ServiceCollection();
+        var registrations = new AutoInjectServiceRegistrations(services);
 
-        // Mock the "Add" method to capture service registrations
-        serviceCollectionMock.Setup(s => s.Add(It.IsAny<ServiceDescriptor>()))
-            .Callback<ServiceDescriptor>(d => registeredServices.Add(d));
-
-        var assembly = Assembly.GetExecutingAssembly(); // Scanning the current assembly
-        var registration = new AutoInjectServiceRegistrations(serviceCollectionMock.Object);
+        // Assume this class doesn't directly implement an interface and has no ServiceType set
+        var serviceType = typeof(MyServiceWithoutInterface); // Class that inherits another class
 
         // Act
-        registration.RegisterFromAssembly(assembly);
+        registrations.RegisterService(serviceType);
 
         // Assert
-        // Check if DerivedService has been registered
-        Assert.DoesNotContain(registeredServices,
-            sd => sd.ServiceType == typeof(AnotherBaseService));
-        // Only one service should be registered from the derived class
-        Assert.DoesNotContain(registeredServices,
-            sd => sd.ServiceType == typeof(AnotherDerivedService));
+        // Check if the service was registered with the class itself, not the base class
+        var serviceDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(MyServiceWithoutInterface));
+        Assert.NotNull(serviceDescriptor);
+        Assert.Equal(typeof(MyServiceWithoutInterface), serviceDescriptor.ImplementationType);
     }
 
-    // Dummy interface for the sake of testing
-    private interface ITestService;
+    [Fact]
+    public void RegisterService_ShouldThrowAmbiguousServiceTypeException_WhenMultipleInterfacesImplementedAndServiceTypeIsNull()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var registrations = new AutoInjectServiceRegistrations(services);
 
-    // Example services for testing
-    [AutoInject(lifetime: ServiceLifetime.Singleton)]
-    private class TestService : ITestService;
+        // Class that implements multiple interfaces but does not specify ServiceType
+        var serviceType = typeof(AmbiguousService);
 
-    [AutoInject(lifetime: ServiceLifetime.Scoped)]
-    private class ScopedService : ITestService;
+        // Act & Assert
+        var exception = Assert.Throws<AmbiguousServiceTypeException>(() =>
+            registrations.RegisterService(serviceType));
 
-    // Example of a class without AutoInject attribute for negative test
-    private class NoInjectService;
+        // Ensure the exception message contains the class name
+        Assert.Contains(serviceType.FullName, exception.Message);
+    }
+}
 
-    [AutoInject]
-    private abstract class AbstractService;
+// Sample test classes
+[AutoInject]
+public class MyService : IMyService
+{
+    public void DoSomething() { }
+}
 
-    private abstract class BaseService;
+public interface IMyService
+{
+    void DoSomething();
+}
 
-    // Derived class with AutoInjectAttribute
-    [AutoInject(lifetime: ServiceLifetime.Singleton)]
-    private class DerivedService : BaseService;
+[AutoInject]
+public class AnotherService : IMyService
+{
+    public void DoSomething() { }
+}
 
-    [AutoInject(lifetime: ServiceLifetime.Singleton)]
-    private abstract class AnotherBaseService;
+[AutoInject(serviceType: typeof(IMyService))]
+public class MultiInterfaceService : IMyService, IOtherService
+{
+    public void DoSomething() { }
+}
 
-    // Derived class with AutoInjectAttribute
-    private class AnotherDerivedService : AnotherBaseService;
+public interface IOtherService;
+
+public class MyServiceWithInterface : IMyService
+{
+    public void DoSomething() { }
+}
+
+
+[AutoInject]
+public class MyServiceWithoutInterface : MyServiceWithInterface;
+
+[AutoInject]
+public class AmbiguousService : IMyService, IOtherService
+{
+    public void DoSomething() { }
 }
