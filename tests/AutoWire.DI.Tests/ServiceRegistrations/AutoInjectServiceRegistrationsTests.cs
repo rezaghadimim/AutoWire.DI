@@ -63,7 +63,7 @@ public class AutoInjectServiceRegistrationsTests
     }
 
     [Fact]
-    public void RegisterService_ShouldUseClassItself_WhenNoDirectInterfaceAndServiceTypeIsNull()
+    public void RegisterService_ShouldUseClassItself_WhenNoInterfaceAndServiceTypeIsNull()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -79,7 +79,27 @@ public class AutoInjectServiceRegistrationsTests
         // Check if the service was registered with the class itself, not the base class
         var serviceDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(MyServiceWithoutInterface));
         Assert.NotNull(serviceDescriptor);
-        Assert.Equal(typeof(MyServiceWithoutInterface), serviceDescriptor.ImplementationType);
+        Assert.Equal(serviceType, serviceDescriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void RegisterService_ShouldUseBaseInterface_WhenNoDirectInterfaceAndServiceTypeIsNull()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var registrations = new AutoInjectServiceRegistrations(services);
+
+        // Assume this class doesn't directly implement an interface and has no ServiceType set
+        var serviceType = typeof(MyServiceWithoutDirectInterface); // Class that inherits another class
+
+        // Act
+        registrations.RegisterService(serviceType);
+
+        // Assert
+        // Check if the service was registered with the class itself, not the base class
+        var serviceDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IMyService));
+        Assert.NotNull(serviceDescriptor);
+        Assert.Equal(serviceType, serviceDescriptor.ImplementationType);
     }
 
     [Fact]
@@ -99,45 +119,51 @@ public class AutoInjectServiceRegistrationsTests
         // Ensure the exception message contains the class name
         Assert.Contains(serviceType.FullName, exception.Message);
     }
-}
 
-// Sample test classes
-[AutoInject]
-public class MyService : IMyService
-{
-    public void DoSomething() { }
-}
+    // Sample test classes
+    [AutoInject]
+    private class MyService : IMyService
+    {
+        public void DoSomething() { }
+    }
 
-public interface IMyService
-{
-    void DoSomething();
-}
+    private interface IBaseService;
 
-[AutoInject]
-public class AnotherService : IMyService
-{
-    public void DoSomething() { }
-}
+    private interface IMyService : IBaseService
+    {
+        void DoSomething();
+    }
 
-[AutoInject(serviceType: typeof(IMyService))]
-public class MultiInterfaceService : IMyService, IOtherService
-{
-    public void DoSomething() { }
-}
+    [AutoInject]
+    private class AnotherService : IMyService
+    {
+        public void DoSomething() { }
+    }
 
-public interface IOtherService;
+    [AutoInject(serviceType: typeof(IMyService))]
+    private class MultiInterfaceService : IMyService, IOtherService
+    {
+        public void DoSomething() { }
+    }
 
-public class MyServiceWithInterface : IMyService
-{
-    public void DoSomething() { }
-}
+    private interface IOtherService;
 
+    private class MyServiceWithInterface : IMyService
+    {
+        public void DoSomething() { }
+    }
 
-[AutoInject]
-public class MyServiceWithoutInterface : MyServiceWithInterface;
+    [AutoInject]
+    private class MyServiceWithoutDirectInterface : MyServiceWithInterface;
 
-[AutoInject]
-public class AmbiguousService : IMyService, IOtherService
-{
-    public void DoSomething() { }
+    private class MyBaseServiceWithoutInterface;
+
+    [AutoInject]
+    private class MyServiceWithoutInterface : MyBaseServiceWithoutInterface;
+
+    [AutoInject]
+    private class AmbiguousService : IMyService, IOtherService
+    {
+        public void DoSomething() { }
+    }
 }

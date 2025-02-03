@@ -73,7 +73,7 @@ public class AutoInjectServiceRegistrations
         var implementedInterfaces = type.GetInterfaces();
 
         // Determine the appropriate service type
-        var serviceType = autoInjectAttribute.ServiceType ?? DetermineDirectServiceType(type, implementedInterfaces);
+        var serviceType = autoInjectAttribute.ServiceType ?? DetermineServiceType(type, implementedInterfaces);
 
         // Check for duplicate service registration
         var conflictingType = GetConflictingService(serviceType, autoInjectAttribute.Key);
@@ -98,12 +98,10 @@ public class AutoInjectServiceRegistrations
     /// <exception cref="AmbiguousServiceTypeException">
     /// Thrown when the class implements multiple interfaces, but no explicit service type is provided in the attribute.
     /// </exception>
-    private static Type DetermineDirectServiceType(Type type, Type[] implementedInterfaces)
+    private static Type DetermineServiceType(Type type, Type[] implementedInterfaces)
     {
         // Get the direct interfaces implemented by the class, excluding inherited ones
-        var directInterfaces = implementedInterfaces
-            .Where(i => type.GetInterfaces().Contains(i) && !type.BaseType?.GetInterfaces().Contains(i) == true)
-            .ToArray();
+        var directInterfaces = GetImplementedInterfaces(implementedInterfaces);
 
         // If no direct interface is found, fall back to using the class itself
         return directInterfaces.Length switch
@@ -114,6 +112,11 @@ public class AutoInjectServiceRegistrations
         };
     }
 
+    private static Type[] GetImplementedInterfaces(Type[] implementedInterfaces)
+        => implementedInterfaces
+            .Where(implementedInterface => implementedInterfaces.Where(i => i != implementedInterface).All(i => !implementedInterface.IsAssignableFrom(i)))
+            .ToArray();
+
     /// <summary>
     /// Checks for any conflicting service registration in the container.
     /// A conflict is found if the same service type and key are already registered.
@@ -121,15 +124,12 @@ public class AutoInjectServiceRegistrations
     /// <param name="serviceType">The service type to check for conflicts.</param>
     /// <param name="key">The key associated with the service (if any).</param>
     /// <returns>The conflicting service type, or null if no conflict is found.</returns>
-    private Type? GetConflictingService(Type serviceType, string? key)
-    {
-        var existingRegistration = _services.FirstOrDefault(descriptor =>
+    private Type? GetConflictingService(Type serviceType, string? key)=> key is null ?
+        _services.FirstOrDefault(descriptor => descriptor.ServiceType == serviceType)?.ImplementationType :
+        _services.FirstOrDefault(descriptor =>
             descriptor.ServiceType == serviceType &&
-            descriptor.ImplementationType != null && // Ensure it's a class type
-            descriptor.ImplementationType.GetCustomAttribute<AutoInjectAttribute>()?.Key == key);
-
-        return existingRegistration?.ImplementationType;
-    }
+            descriptor.KeyedImplementationType != null && // Ensure it's a class type
+            descriptor.KeyedImplementationType.GetCustomAttribute<AutoInjectAttribute>()?.Key == key)?.KeyedImplementationType;
 
     /// <summary>
     /// Generates a ServiceDescriptor for the service, including the service type, implementation type, key, and lifetime.
