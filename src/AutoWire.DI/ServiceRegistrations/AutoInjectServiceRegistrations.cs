@@ -73,7 +73,11 @@ public class AutoInjectServiceRegistrations
         var implementedInterfaces = type.GetInterfaces();
 
         // Determine the appropriate service type
-        var serviceType = autoInjectAttribute.ServiceType ?? DetermineServiceType(type, implementedInterfaces);
+
+        var serviceType = autoInjectAttribute.ServiceType ??
+                          DetermineServiceType(type, implementedInterfaces);
+
+        serviceType = serviceType.IsGenericType && autoInjectAttribute.ServiceType is null ? serviceType.GetGenericTypeDefinition() : serviceType;
 
         // Check for duplicate service registration
         var conflictingType = GetConflictingService(serviceType, autoInjectAttribute.Key);
@@ -98,7 +102,8 @@ public class AutoInjectServiceRegistrations
     /// <exception cref="AmbiguousServiceTypeException">
     /// Thrown when the class implements multiple interfaces, but no explicit service type is provided in the attribute.
     /// </exception>
-    private static Type DetermineServiceType(Type type, Type[] implementedInterfaces)
+    private static Type DetermineServiceType(Type type,
+        Type[] implementedInterfaces)
     {
         // Get the direct interfaces implemented by the class, excluding inherited ones
         var directInterfaces = GetImplementedInterfaces(implementedInterfaces);
@@ -114,7 +119,8 @@ public class AutoInjectServiceRegistrations
 
     private static Type[] GetImplementedInterfaces(Type[] implementedInterfaces)
         => implementedInterfaces
-            .Where(implementedInterface => implementedInterfaces.Where(i => i != implementedInterface).All(i => !implementedInterface.IsAssignableFrom(i)))
+            .Where(implementedInterface => implementedInterfaces.Where(i => i != implementedInterface)
+                .All(i => !implementedInterface.IsAssignableFrom(i)))
             .ToArray();
 
     /// <summary>
@@ -124,9 +130,10 @@ public class AutoInjectServiceRegistrations
     /// <param name="serviceType">The service type to check for conflicts.</param>
     /// <param name="key">The key associated with the service (if any).</param>
     /// <returns>The conflicting service type, or null if no conflict is found.</returns>
-    private Type? GetConflictingService(Type serviceType, string? key)=> key is null ?
-        _services.FirstOrDefault(descriptor => descriptor.ServiceType == serviceType)?.ImplementationType :
-        _services.FirstOrDefault(descriptor =>
+    private Type? GetConflictingService(Type serviceType,
+        string? key) => key is null
+        ? _services.FirstOrDefault(descriptor => descriptor.ServiceType == serviceType)?.ImplementationType
+        : _services.FirstOrDefault(descriptor =>
             descriptor.ServiceType == serviceType &&
             descriptor.KeyedImplementationType != null && // Ensure it's a class type
             descriptor.KeyedImplementationType.GetCustomAttribute<AutoInjectAttribute>()?.Key == key)?.KeyedImplementationType;
@@ -138,6 +145,8 @@ public class AutoInjectServiceRegistrations
     /// <param name="implementationType">The implementation type to register.</param>
     /// <param name="autoInjectAttribute">The AutoInject attribute containing the key and lifetime.</param>
     /// <returns>A ServiceDescriptor for the service.</returns>
-    private static ServiceDescriptor Generate(Type serviceType, Type implementationType, AutoInjectAttribute autoInjectAttribute)
+    private static ServiceDescriptor Generate(Type serviceType,
+        Type implementationType,
+        AutoInjectAttribute autoInjectAttribute)
         => new(serviceType, autoInjectAttribute.Key, implementationType, autoInjectAttribute.Lifetime);
 }

@@ -120,6 +120,44 @@ public class AutoInjectServiceRegistrationsTests
         Assert.Contains(serviceType.FullName, exception.Message);
     }
 
+    [Fact]
+    public void RegisterService_ShouldRegisterServiceWithGenericInterface_WhenServiceTypeIsNotNull()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var registrations = new AutoInjectServiceRegistrations(services);
+
+        // Class that implements a generic interface
+        var serviceType = typeof(GenericService<>);
+
+        // Act
+        registrations.RegisterService(serviceType);
+
+        // Assert
+        var serviceDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IGenericService<>));
+        Assert.NotNull(serviceDescriptor);
+        Assert.Equal(serviceType, serviceDescriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void RegisterService_ShouldRegisterServiceWithGenericInterface_WhenServiceTypeIsNull()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var registrations = new AutoInjectServiceRegistrations(services);
+
+        // Class that implements a generic interface
+        var serviceType = typeof(AnotherGenericService<>);
+
+        // Act
+        registrations.RegisterService(serviceType);
+
+        // Assert
+        var serviceDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IGenericService<>));
+        Assert.NotNull(serviceDescriptor);
+        Assert.Equal(serviceType, serviceDescriptor.ImplementationType);
+    }
+
     // Sample test classes
     [AutoInject]
     private class MyService : IMyService
@@ -166,4 +204,12 @@ public class AutoInjectServiceRegistrationsTests
     {
         public void DoSomething() { }
     }
+
+    private interface IGenericService<T>;
+
+    [AutoInject(serviceType: typeof(IGenericService<>))]
+    private class GenericService<T> : IGenericService<T>;
+
+    [AutoInject]
+    private class AnotherGenericService<T> : IGenericService<T>;
 }
