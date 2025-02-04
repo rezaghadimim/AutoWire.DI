@@ -6,12 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AutoWire.DI.ServiceRegistrations;
 
 /// <summary>
-/// Facilitates the registration of services within an <see cref="IServiceCollection"/> based on the presence of the <see cref="AutoInjectAttribute"/>.
+/// Handles the automatic registration of services decorated with <see cref="AutoInjectAttribute"/>.
 /// </summary>
 /// <remarks>
-/// This class scans the specified assembly for types that are annotated with the <see cref="AutoInjectAttribute"/>.
-/// It registers these types as services with the dependency injection container, allowing for easy and automatic service registration.
-/// The registration utilizes the specified lifetime and optional key defined in the attribute.
+/// Scans the given assembly for classes marked with <see cref="AutoInjectAttribute"/> and registers them
+/// in the provided <see cref="IServiceCollection"/>.
 /// </remarks>
 public class ServiceRegistrar
 {
@@ -24,24 +23,20 @@ public class ServiceRegistrar
     public ServiceRegistrar(IServiceCollection services) => _services = services;
 
     /// <summary>
-    /// Registers services from the specified assembly that are marked with the <see cref="AutoInjectAttribute"/>.
+    /// Registers all services in the specified assembly that are marked with <see cref="AutoInjectAttribute"/>.
     /// </summary>
-    /// <param name="assembly">The assembly from which to scan for services to register.</param>
+    /// <param name="assembly">The assembly to scan for injectable services.</param>
     /// <exception cref="DuplicateServiceRegistrationException">
-    /// Thrown if a service with the same type and key is already registered in the container.
-    /// This prevents duplicate service registrations with the same key or type.
+    /// Thrown if a service with the same type and key is already registered.
     /// </exception>
     /// <exception cref="AmbiguousServiceTypeException">
-    /// Thrown when the class implements multiple interfaces and no explicit service type is provided in the attribute.
-    /// This avoids ambiguity in service registration by ensuring only one type is registered as a service.
+    /// Thrown when a class implements multiple interfaces and the service type is not explicitly provided.
     /// </exception>
     public void RegisterFromAssembly(Assembly assembly)
     {
-        // Retrieves all types in the assembly that are not abstract and are marked with the AutoInjectAttribute
         var typesWithAttribute = assembly.GetTypes()
             .Where(t => !t.IsAbstract && (t.GetCustomAttribute<AutoInjectAttribute>() != null));
 
-        // Registers each service type found with the AutoInject attribute
         foreach (var type in typesWithAttribute)
         {
             RegisterService(type);
@@ -49,102 +44,108 @@ public class ServiceRegistrar
     }
 
     /// <summary>
-    /// Registers a service type in the dependency injection container.
-    /// It first checks if the provided type is decorated with the <see cref="AutoInjectAttribute"/>.
-    /// If the service type is not provided via the attribute, it attempts to determine it based on the implemented interfaces.
-    /// Additionally, it checks for any conflicts (duplicate registrations) and throws an exception if a conflict is found.
+    /// Registers a service type in the dependency injection container based on the provided class type.
     /// </summary>
-    /// <param name="type">
-    /// The <see cref="Type"/> of the service to be registered.
-    /// This type must be decorated with the <see cref="AutoInjectAttribute"/> to be registered.
-    /// </param>
+    /// <param name="type">The class type to register.</param>
     /// <exception cref="DuplicateServiceRegistrationException">
-    /// Thrown if a service with the same type and key is already registered in the container.
-    /// This prevents duplicate service registrations with the same key or type.
+    /// Thrown if a service with the same type and key already exists.
     /// </exception>
     /// <exception cref="AmbiguousServiceTypeException">
-    /// Thrown when the class implements multiple interfaces and no explicit service type is provided in the attribute.
-    /// This avoids ambiguity in service registration by ensuring only one type is registered as a service.
+    /// Thrown when multiple interfaces are implemented but no explicit service type is specified.
     /// </exception>
     protected internal void RegisterService(Type type)
     {
-        // Retrieve the AutoInject attribute from the type
         var autoInjectAttribute = type.GetCustomAttribute<AutoInjectAttribute>()!;
-        var implementedInterfaces = type.GetInterfaces();
+        var serviceType = DetermineServiceType(type, autoInjectAttribute);
 
-        // Determine the appropriate service type
+        ValidateNoConflict(serviceType, autoInjectAttribute.Key, type);
 
-        var serviceType = autoInjectAttribute.ServiceType ??
-                          DetermineServiceType(type, implementedInterfaces);
-
-        serviceType = serviceType.IsGenericType && autoInjectAttribute.ServiceType is null ? serviceType.GetGenericTypeDefinition() : serviceType;
-
-        // Check for duplicate service registration
-        var conflictingType = GetConflictingService(serviceType, autoInjectAttribute.Key);
-        if (conflictingType != null)
-        {
-            // If a duplicate is found, throw an exception
-            throw new DuplicateServiceRegistrationException(type, conflictingType, serviceType, autoInjectAttribute.Key);
-        }
-
-        // Generate the service descriptor and register the service
-        var serviceDescriptor = Generate(serviceType, type, autoInjectAttribute);
-        _services.Add(serviceDescriptor);
+        _services.Add(Generate(serviceType, type, autoInjectAttribute));
     }
 
     /// <summary>
-    /// Determines the direct service type based on the implemented interfaces, excluding inherited ones.
-    /// If no direct interface is found, it falls back to using the class itself.
+    /// Determines the appropriate service type based on implemented interfaces or the class itself.
     /// </summary>
-    /// <param name="type">The type to examine for implemented interfaces.</param>
-    /// <param name="implementedInterfaces">The interfaces implemented by the class.</param>
-    /// <returns>The appropriate service type.</returns>
+    /// <param name="type">The class type to analyze.</param>
+    /// <param name="autoInjectAttribute">The <see cref="AutoInjectAttribute"/> associated with the class.</param>
+    /// <returns>The resolved service type.</returns>
     /// <exception cref="AmbiguousServiceTypeException">
-    /// Thrown when the class implements multiple interfaces, but no explicit service type is provided in the attribute.
+    /// Thrown if multiple interfaces are implemented without explicitly specifying a service type.
     /// </exception>
-    private static Type DetermineServiceType(Type type,
-        Type[] implementedInterfaces)
+    private static Type DetermineServiceType(Type type, AutoInjectAttribute autoInjectAttribute)
     {
-        // Get the direct interfaces implemented by the class, excluding inherited ones
-        var directInterfaces = GetImplementedInterfaces(implementedInterfaces);
+        var implementedInterfaces = type.GetInterfaces();
+        var serviceType = autoInjectAttribute.ServiceType ?? GetDirectServiceType(type, implementedInterfaces);
+        return serviceType.IsGenericType && autoInjectAttribute.ServiceType is null
+            ? serviceType.GetGenericTypeDefinition()
+            : serviceType;
+    }
 
-        // If no direct interface is found, fall back to using the class itself
+    /// <summary>
+    /// Retrieves the direct service type implemented by the class.
+    /// </summary>
+    /// <param name="type">The class type to analyze.</param>
+    /// <param name="implementedInterfaces">The interfaces implemented by the class.</param>
+    /// <returns>The direct service type.</returns>
+    /// <exception cref="AmbiguousServiceTypeException">
+    /// Thrown if no unique direct interface can be identified.
+    /// </exception>
+    private static Type GetDirectServiceType(Type type, Type[] implementedInterfaces)
+    {
+        var directInterfaces = implementedInterfaces
+            .Where(i => implementedInterfaces.All(other => other == i || !i.IsAssignableFrom(other)))
+            .ToArray();
+
         return directInterfaces.Length switch
         {
-            0 => type, // Fallback to the class type if no interfaces are found
-            1 => directInterfaces[0], // Return the single direct interface
-            _ => throw new AmbiguousServiceTypeException(type.FullName!) // Throw exception if multiple interfaces are found
+            0 => type,
+            1 => directInterfaces[0],
+            _ => throw new AmbiguousServiceTypeException(type.FullName!)
         };
     }
 
-    private static Type[] GetImplementedInterfaces(Type[] implementedInterfaces)
-        => implementedInterfaces
-            .Where(implementedInterface => implementedInterfaces.Where(i => i != implementedInterface)
-                .All(i => !implementedInterface.IsAssignableFrom(i)))
-            .ToArray();
+    /// <summary>
+    /// Ensures no conflicting service registrations exist.
+    /// </summary>
+    /// <param name="serviceType">The service type to validate.</param>
+    /// <param name="key">An optional key for keyed services.</param>
+    /// <param name="type">The type being registered.</param>
+    /// <exception cref="DuplicateServiceRegistrationException">
+    /// Thrown when a conflicting service registration is found.
+    /// </exception>
+    private void ValidateNoConflict(Type serviceType,
+        string? key,
+        Type type)
+    {
+        var conflictingType = GetConflictingService(serviceType, key);
+        if (conflictingType != null)
+        {
+            throw new DuplicateServiceRegistrationException(type, conflictingType, serviceType, key);
+        }
+    }
 
     /// <summary>
-    /// Checks for any conflicting service registration in the container.
-    /// A conflict is found if the same service type and key are already registered.
+    /// Checks if a service with the given type and key is already registered.
     /// </summary>
-    /// <param name="serviceType">The service type to check for conflicts.</param>
-    /// <param name="key">The key associated with the service (if any).</param>
-    /// <returns>The conflicting service type, or null if no conflict is found.</returns>
+    /// <param name="serviceType">The service type to check.</param>
+    /// <param name="key">An optional key for keyed services.</param>
+    /// <returns>The conflicting service type if found, otherwise null.</returns>
     private Type? GetConflictingService(Type serviceType,
         string? key) => key is null
         ? _services.FirstOrDefault(descriptor => descriptor.ServiceType == serviceType)?.ImplementationType
         : _services.FirstOrDefault(descriptor =>
-            descriptor.ServiceType == serviceType &&
-            descriptor.KeyedImplementationType != null && // Ensure it's a class type
-            descriptor.KeyedImplementationType.GetCustomAttribute<AutoInjectAttribute>()?.Key == key)?.KeyedImplementationType;
+                descriptor.ServiceType == serviceType &&
+                descriptor.KeyedImplementationType != null &&
+                descriptor.KeyedImplementationType.GetCustomAttribute<AutoInjectAttribute>()?.Key == key)
+            ?.KeyedImplementationType;
 
     /// <summary>
-    /// Generates a ServiceDescriptor for the service, including the service type, implementation type, key, and lifetime.
+    /// Creates a <see cref="ServiceDescriptor"/> for service registration.
     /// </summary>
-    /// <param name="serviceType">The service type to register.</param>
-    /// <param name="implementationType">The implementation type to register.</param>
-    /// <param name="autoInjectAttribute">The AutoInject attribute containing the key and lifetime.</param>
-    /// <returns>A ServiceDescriptor for the service.</returns>
+    /// <param name="serviceType">The service type.</param>
+    /// <param name="implementationType">The concrete implementation type.</param>
+    /// <param name="autoInjectAttribute">The attribute defining registration details.</param>
+    /// <returns>A configured <see cref="ServiceDescriptor"/>.</returns>
     private static ServiceDescriptor Generate(Type serviceType,
         Type implementationType,
         AutoInjectAttribute autoInjectAttribute)

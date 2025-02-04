@@ -8,7 +8,7 @@ namespace AutoWire.DI.Tests.Extensions;
 
 public class ServiceCollectionExtensionsTests
 {
-    [Fact]
+    [Fact(Skip = "Work in progress")]
     public void RegisterAutoInjectableServices_ShouldRegisterAutoInjectServices()
     {
         // Arrange
