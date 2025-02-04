@@ -114,18 +114,18 @@
         <member name="M:AutoWire.DI.Extensions.ServiceCollectionExtensions.RegisterAutoInjectableServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
             Registers services in the provided <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> that are decorated with the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
-            This method scans the calling assembly for classes marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> and registers them 
+            This method scans the calling assembly for classes marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> and registers them
             as services in the specified service collection.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> to which services will be added.</param>
             <returns>The updated <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> containing the registered services.</returns>
             <remarks>
-            This method uses <see cref="M:System.Reflection.Assembly.GetCallingAssembly"/> to determine the assembly from which the registration 
-            method was called. It is important to ensure that services marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> are 
+            This method uses <see cref="M:System.Reflection.Assembly.GetCallingAssembly"/> to determine the assembly from which the registration
+            method was called. It is important to ensure that services marked with <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/> are
             defined in that calling assembly; otherwise, no services will be registered.
             </remarks>
         </member>
-        <member name="T:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations">
+        <member name="T:AutoWire.DI.ServiceRegistrations.ServiceRegistrar">
             <summary>
             Facilitates the registration of services within an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> based on the presence of the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
             </summary>
@@ -135,13 +135,13 @@
             The registration utilizes the specified lifetime and optional key defined in the attribute.
             </remarks>
         </member>
-        <member name="M:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations.#ctor(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+        <member name="M:AutoWire.DI.ServiceRegistrations.ServiceRegistrar.#ctor(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
-            Initializes a new instance of the <see cref="T:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations"/> class.
+            Initializes a new instance of the <see cref="T:AutoWire.DI.ServiceRegistrations.ServiceRegistrar"/> class.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> where services will be registered.</param>
         </member>
-        <member name="M:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations.RegisterFromAssembly(System.Reflection.Assembly)">
+        <member name="M:AutoWire.DI.ServiceRegistrations.ServiceRegistrar.RegisterFromAssembly(System.Reflection.Assembly)">
             <summary>
             Registers services from the specified assembly that are marked with the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
             </summary>
@@ -155,7 +155,7 @@
             This avoids ambiguity in service registration by ensuring only one type is registered as a service.
             </exception>
         </member>
-        <member name="M:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations.RegisterService(System.Type)">
+        <member name="M:AutoWire.DI.ServiceRegistrations.ServiceRegistrar.RegisterService(System.Type)">
             <summary>
             Registers a service type in the dependency injection container.
             It first checks if the provided type is decorated with the <see cref="T:AutoWire.DI.Attributes.AutoInjectAttribute"/>.
@@ -175,7 +175,7 @@
             This avoids ambiguity in service registration by ensuring only one type is registered as a service.
             </exception>
         </member>
-        <member name="M:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations.DetermineServiceType(System.Type,System.Type[])">
+        <member name="M:AutoWire.DI.ServiceRegistrations.ServiceRegistrar.DetermineServiceType(System.Type,System.Type[])">
             <summary>
             Determines the direct service type based on the implemented interfaces, excluding inherited ones.
             If no direct interface is found, it falls back to using the class itself.
@@ -187,7 +187,7 @@
             Thrown when the class implements multiple interfaces, but no explicit service type is provided in the attribute.
             </exception>
         </member>
-        <member name="M:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations.GetConflictingService(System.Type,System.String)">
+        <member name="M:AutoWire.DI.ServiceRegistrations.ServiceRegistrar.GetConflictingService(System.Type,System.String)">
             <summary>
             Checks for any conflicting service registration in the container.
             A conflict is found if the same service type and key are already registered.
@@ -196,7 +196,7 @@
             <param name="key">The key associated with the service (if any).</param>
             <returns>The conflicting service type, or null if no conflict is found.</returns>
         </member>
-        <member name="M:AutoWire.DI.ServiceRegistrations.AutoInjectServiceRegistrations.Generate(System.Type,System.Type,AutoWire.DI.Attributes.AutoInjectAttribute)">
+        <member name="M:AutoWire.DI.ServiceRegistrations.ServiceRegistrar.Generate(System.Type,System.Type,AutoWire.DI.Attributes.AutoInjectAttribute)">
             <summary>
             Generates a ServiceDescriptor for the service, including the service type, implementation type, key, and lifetime.
             </summary>

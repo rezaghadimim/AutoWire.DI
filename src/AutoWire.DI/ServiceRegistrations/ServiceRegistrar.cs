@@ -13,15 +13,15 @@ namespace AutoWire.DI.ServiceRegistrations;
 /// It registers these types as services with the dependency injection container, allowing for easy and automatic service registration.
 /// The registration utilizes the specified lifetime and optional key defined in the attribute.
 /// </remarks>
-public class AutoInjectServiceRegistrations
+public class ServiceRegistrar
 {
     private readonly IServiceCollection _services;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AutoInjectServiceRegistrations"/> class.
+    /// Initializes a new instance of the <see cref="ServiceRegistrar"/> class.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> where services will be registered.</param>
-    public AutoInjectServiceRegistrations(IServiceCollection services) => _services = services;
+    public ServiceRegistrar(IServiceCollection services) => _services = services;
 
     /// <summary>
     /// Registers services from the specified assembly that are marked with the <see cref="AutoInjectAttribute"/>.
