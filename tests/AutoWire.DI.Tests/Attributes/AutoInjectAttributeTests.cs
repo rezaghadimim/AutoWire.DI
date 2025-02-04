@@ -79,6 +79,18 @@ public class AutoInjectAttributeTests
         Assert.Equal("exampleKey", attribute.Key);
     }
 
+    [Fact]
+    public void AutoInjectAttribute_Only_ServiceType_Specified()
+    {
+        // Arrange
+        var onlyServiceTypeSpecifiedClassType = typeof(OnlyServiceTypeSpecifiedClass);
+        var attribute = (AutoInjectAttribute)Attribute.GetCustomAttribute(onlyServiceTypeSpecifiedClassType, typeof(AutoInjectAttribute))!;
+
+        // Act & Assert
+        Assert.NotNull(attribute);
+        Assert.Equal(typeof(OnlyServiceTypeSpecifiedClass), attribute.ServiceType);
+    }
+
     [AutoInject("exampleKey", ServiceLifetime.Singleton)]
     private class ExampleClass;
 
@@ -94,4 +106,9 @@ public class AutoInjectAttributeTests
 
     [AutoInject("exampleKey")]
     private class OnlyKeySpecifiedClass;
+
+    private interface IOnlyServiceTypeSpecifiedClass;
+
+    [AutoInject(serviceType: typeof(OnlyServiceTypeSpecifiedClass))]
+    private class OnlyServiceTypeSpecifiedClass : IOnlyServiceTypeSpecifiedClass;
 }
