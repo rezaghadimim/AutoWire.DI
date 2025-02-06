@@ -117,7 +117,7 @@ public class ServiceRegistrarTests
             serviceRegistrar.RegisterService(serviceType));
 
         // Ensure the exception message contains the class name
-        Assert.Contains(serviceType.FullName, exception.Message);
+        Assert.Contains(serviceType.FullName!, exception.Message);
     }
 
     [AutoInject]
