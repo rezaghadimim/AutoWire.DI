@@ -1,114 +1,82 @@
 # AutoWire.DI
 
-AutoWire.DI is a lightweight dependency injection library for .NET applications that simplifies the process of registering services automatically. By utilizing attribute-based service configuration, AutoWire.DI helps developers reduce boilerplate code and ensures a clean and maintainable codebase.
+[![NuGet Version](https://img.shields.io/nuget/v/AutoWire.DI.svg)](https://www.nuget.org/packages/AutoWire.DI/)
 
-## Features
+**AutoWire.DI** is a powerful, lightweight **dependency injection** (DI) library for **.NET** applications featuring automatic registration capabilities. This library simplifies the process of injecting dependencies into your classes by automating service registration, allowing you to focus more on your application logic without the boilerplate associated with manual DI setup.
 
-- **Automatic Service Registration**: Automatically discovers and registers services decorated with the `AutoInject` attribute, minimizing manual setup.
-- **Attribute-Based Configuration**: Allows developers to mark classes for injection with a simple attribute, enhancing readability.
-- **Flexible Assembly Scanning**: Easily register services from specified assemblies, ensuring that all desired services are included.
-- **Support for Keyed Registration**: Allows you to register services with specific keys, enabling the resolution of different implementations for the same service type based on the provided key.
-- **Service Lifetime Management**: Supports different service lifetimes (e.g., Singleton, Transient, Scoped) for precise control over service instantiation. If no lifetime is specified, the default service lifetime is set to **Scoped**.
-- **Seamless Integration**: Designed to work smoothly with Microsoft.Extensions.DependencyInjection, making integration into existing applications straightforward.
+## Key Features
 
-## Installation
+- **Automatic Service Registration**: Effortlessly register services with minimal configuration using the `[AutoInject]` attribute.
+- **Flexible Service Lifetimes**: Support for `Singleton`, `Scoped`, and `Transient` lifetimes.
+- **No Manual Configuration**: Forget about manually adding each service to your container—just decorate your classes.
+- **Error-Free Registration**: Built-in exception handling for duplicate and ambiguous registrations, ensuring a smooth DI experience.
+- **Support for .NET 8.0 and 9.0**: Fully compatible with the latest versions of .NET.
 
-You can install AutoWire.DI via NuGet Package Manager. Run the following command in your .NET project:
+## Getting Started
 
-```bash
+### Installation
+
+To install `AutoWire.DI` into your project, run the following command in your terminal or package manager console:
+
+```sh
 dotnet add package AutoWire.DI
 ```
 
-## Usage
+### Simple Usage
 
-### 1. Define Your Services
+1. **Define Your Service Class**
 
-Decorate your service classes with the AutoInject attribute to mark them for automatic registration. You can specify a key and the desired service lifetime. If no lifetime is specified, the service will default to Scoped .
+Simply add the `[AutoInject]` attribute to your class, and it will be automatically registered in the DI container. You can also specify the service lifetime and service type.
 
 ```csharp
 using AutoWire.DI.Attributes;
 
+[AutoInject("myServiceKey", ServiceLifetime.Singleton)]
+public class MyService
+{
+    // Service implementation details
+}
+```
+
+- **No Parameters? No Problem!**
+  If no parameters are specified in the `[AutoInject]` attribute, the service is registered based on its implemented interface or class type.
+
+```csharp
 [AutoInject]
-public class MyService : IMyService
+public class MyService
 {
-    public void DoWork()
-    {
-        // Implementation
-    }
-}
-
-[AutoInject("exampleKey", ServiceLifetime.Singleton)]
-public class MyKeyedService : IMyService
-{
-    public void DoWork()
-    {
-        // Implementation
-    }
+    // Service implementation
 }
 ```
 
-### 2. Register Your Services
+2. **Register Services in Your DI Container**
 
-In your application's startup configuration, call the `RegisterAutoInjectableServices` method to automatically register services from the specified assembly.
+In your `Startup.cs` (or `Program.cs` if you're using .NET 6+), call the `RegisterAutoInjectableServices` method to automatically scan and register all services decorated with `[AutoInject]`.
 
 ```csharp
-public class Startup
+using AutoWire.DI.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+
+public void ConfigureServices(IServiceCollection services)
 {
-    public void ConfigureServices(IServiceCollection services)
-    {
-        // Register all services in the calling assembly that are marked with AutoInject
-        services.RegisterAutoInjectableServices();
-        
-        // Register an alternative implementation with a different key
-        services.AddTransient<IMyService, MyAlternativeService>("Alternative");
-    }
+    services.RegisterAutoInjectableServices();
 }
 ```
 
-#### Resolving Keyed Services
-To resolve a service using its key, you can retrieve it from the service provider as shown:
+### Exception Handling
 
-```csharp
-var serviceProvider = services.BuildServiceProvider();
-var myService = serviceProvider.GetService<IMyService>("exampleKey");
-var alternativeService = serviceProvider.GetService<IMyService>("Alternative");
-```
+- **AmbiguousServiceTypeException**: This exception is thrown when a class implements multiple interfaces but doesn't specify which one to use. To avoid this, always specify the service type in such cases.
+- **DuplicateServiceRegistrationException**: This exception is thrown if a service is being registered with the same service type and key, leading to a conflict. Ensure that you don't have conflicting registrations.
 
-### 3. Resolve Services in Your Application
+## Why Choose AutoWire.DI?
 
-You can then resolve your services using the built service provider.
+- **Simplify Dependency Injection**: Get rid of repetitive DI configuration and make your code cleaner and more maintainable.
+- **Automatic and Flexible**: Works seamlessly with both simple services and more complex configurations.
+- **Error-Free Registration**: With built-in checks for duplicate and ambiguous registrations, you avoid the common pitfalls of manual DI setup.
 
-```csharp
-public class SomeController
-{
-    private readonly IMyService _myService;
+## Documentation
 
-    public SomeController(IMyService myService)
-    {
-        _myService = myService; // Automatically injected by the DI container
-    }
-
-    public void Execute()
-    {
-        _myService.DoWork();
-    }
-}
-
-public class SomeController
-{
-    private readonly IMyService _myService;
-
-    public SomeController([FromKeyedServices("exampleKey")] IMyService myService)
-    {
-        _myService = myService; // Automatically injected by the DI container
-    }
-
-    public void Execute()
-    {
-        _myService.DoWork();
-    }
-}
-```
+For more in-depth guidance on using **AutoWire.DI** and advanced configurations, check out the full documentation on our [GitHub Wiki](https://github.com/rezaghadimim/AutoWire.DI/wiki).
 
 ## Contributing
 
@@ -118,7 +86,7 @@ Contributions to AutoWire.DI are welcome! If you have suggestions, bug fixes, or
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
+
 ## Acknowledgments
 
-- Thanks to the community for their continual support and contributions.
-- Inspired by various dependency injection principles and frameworks in the .NET ecosystem.
+Inspired by various dependency injection principles and frameworks in the .NET ecosystem.
