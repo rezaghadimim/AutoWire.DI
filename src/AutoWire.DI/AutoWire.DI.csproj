@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
@@ -14,6 +14,7 @@
     <DocumentationFile>..\..\docs\AutoWire.DI.xml</DocumentationFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/rezaghadimim/AutoWire.DI/wiki</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
