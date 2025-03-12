@@ -71,6 +71,19 @@
             If the class does not implement any interfaces, the class type itself will be used as the service type.
             </remarks>
         </member>
+        <member name="T:AutoWire.DI.Attributes.KeyedAutoInjectAttribute">
+            <summary>
+            An attribute that marks a class for automatic registration in the dependency injection container with a specific key.
+            </summary>
+            <inheritdoc />
+        </member>
+        <member name="M:AutoWire.DI.Attributes.KeyedAutoInjectAttribute.#ctor(Microsoft.Extensions.DependencyInjection.ServiceLifetime,System.Type)">
+            <summary>
+            Initializes a new instance of the <see cref="T:AutoWire.DI.Attributes.KeyedAutoInjectAttribute"/> class.
+            </summary>
+            <param name="lifetime">The service lifetime, indicating how the service is managed.</param>
+            <param name="serviceType">The specific service type to register. If null, defaults to the type of the class this attribute is applied to.</param>
+        </member>
         <member name="T:AutoWire.DI.Exceptions.AmbiguousServiceTypeException">
             <summary>
             Exception thrown when a class implements multiple interfaces but no explicit service type is specified.
@@ -205,13 +218,14 @@
             <param name="key">An optional key for keyed services.</param>
             <returns>The conflicting service type if found, otherwise null.</returns>
         </member>
-        <member name="M:AutoWire.DI.ServiceRegistrations.ServiceRegistrar.Generate(System.Type,System.Type,AutoWire.DI.Attributes.AutoInjectAttribute)">
+        <member name="M:AutoWire.DI.ServiceRegistrations.ServiceRegistrar.Generate(System.Type,System.String,System.Type,Microsoft.Extensions.DependencyInjection.ServiceLifetime)">
             <summary>
             Creates a <see cref="T:Microsoft.Extensions.DependencyInjection.ServiceDescriptor"/> for service registration.
             </summary>
             <param name="serviceType">The service type.</param>
+            <param name="key">An optional key for keyed services.</param>
             <param name="implementationType">The concrete implementation type.</param>
-            <param name="autoInjectAttribute">The attribute defining registration details.</param>
+            <param name="lifetime">The lifetime of the service.</param>
             <returns>A configured <see cref="T:Microsoft.Extensions.DependencyInjection.ServiceDescriptor"/>.</returns>
         </member>
     </members>
