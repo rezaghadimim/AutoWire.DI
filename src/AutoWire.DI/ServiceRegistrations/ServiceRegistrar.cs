@@ -35,7 +35,8 @@ public class ServiceRegistrar
     public void RegisterFromAssembly(Assembly assembly)
     {
         var typesWithAttribute = assembly.GetTypes()
-            .Where(t => !t.IsAbstract && (t.GetCustomAttribute<AutoInjectAttribute>() != null));
+            .Where(t => !t.IsAbstract &&
+                        (t.GetCustomAttribute<AutoInjectAttribute>() != null || t.GetCustomAttribute<KeyedAutoInjectAttribute>() != null));
 
         foreach (var type in typesWithAttribute)
         {
@@ -55,12 +56,25 @@ public class ServiceRegistrar
     /// </exception>
     protected internal void RegisterService(Type type)
     {
+        var key = GetKey(type);
+
         var autoInjectAttribute = type.GetCustomAttribute<AutoInjectAttribute>()!;
-        var serviceType = DetermineServiceType(type, autoInjectAttribute);
+        var serviceType = DetermineServiceType(type, type.GetCustomAttribute<AutoInjectAttribute>()!);
 
-        ValidateNoConflict(serviceType, autoInjectAttribute.Key, type);
+        ValidateNoConflict(serviceType, key, type);
 
-        _services.Add(Generate(serviceType, type, autoInjectAttribute));
+        _services.Add(Generate(serviceType, key, type, autoInjectAttribute.Lifetime));
+    }
+
+    private static string? GetKey(Type type)
+    {
+        if (type.GetCustomAttribute<KeyedAutoInjectAttribute>() != null)
+        {
+            return type.Name;
+        }
+
+        var keyedAutoInjectAttribute = type.GetCustomAttribute<KeyedAutoInjectAttribute>();
+        return keyedAutoInjectAttribute?.Key;
     }
 
     /// <summary>
@@ -72,7 +86,8 @@ public class ServiceRegistrar
     /// <exception cref="AmbiguousServiceTypeException">
     /// Thrown if multiple interfaces are implemented without explicitly specifying a service type.
     /// </exception>
-    private static Type DetermineServiceType(Type type, AutoInjectAttribute autoInjectAttribute)
+    private static Type DetermineServiceType(Type type,
+        AutoInjectAttribute autoInjectAttribute)
     {
         var implementedInterfaces = type.GetInterfaces();
         var serviceType = autoInjectAttribute.ServiceType ?? GetDirectServiceType(type, implementedInterfaces);
@@ -90,7 +105,8 @@ public class ServiceRegistrar
     /// <exception cref="AmbiguousServiceTypeException">
     /// Thrown if no unique direct interface can be identified.
     /// </exception>
-    private static Type GetDirectServiceType(Type type, Type[] implementedInterfaces)
+    private static Type GetDirectServiceType(Type type,
+        Type[] implementedInterfaces)
     {
         var directInterfaces = implementedInterfaces
             .Where(i => implementedInterfaces.All(other => other == i || !i.IsAssignableFrom(other)))
@@ -143,11 +159,13 @@ public class ServiceRegistrar
     /// Creates a <see cref="ServiceDescriptor"/> for service registration.
     /// </summary>
     /// <param name="serviceType">The service type.</param>
+    /// <param name="key">An optional key for keyed services.</param>
     /// <param name="implementationType">The concrete implementation type.</param>
-    /// <param name="autoInjectAttribute">The attribute defining registration details.</param>
+    /// <param name="lifetime">The lifetime of the service.</param>
     /// <returns>A configured <see cref="ServiceDescriptor"/>.</returns>
     private static ServiceDescriptor Generate(Type serviceType,
+        string? key,
         Type implementationType,
-        AutoInjectAttribute autoInjectAttribute)
-        => new(serviceType, autoInjectAttribute.Key, implementationType, autoInjectAttribute.Lifetime);
+        ServiceLifetime lifetime)
+        => new(serviceType, key, implementationType, lifetime);
 }

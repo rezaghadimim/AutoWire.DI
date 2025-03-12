@@ -31,7 +31,7 @@ namespace AutoWire.DI.Attributes;
 /// </code>
 /// </example>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public sealed class AutoInjectAttribute : Attribute
+public class AutoInjectAttribute : Attribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoInjectAttribute"/> class with an optional key, service lifetime, and service type.
