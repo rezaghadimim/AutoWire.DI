@@ -95,7 +95,7 @@ dotnet add package AutoWire.DI
        private readonly MyService _myService;
        private readonly KeyedService _keyedService;
 
-       public MyController(MyService myService, KeyedService keyedService)
+       public MyController(MyService myService, [FromKeyedServices(nameof(keyedService))] KeyedService keyedService)
        {
            _myService = myService;
            _keyedService = keyedService;
